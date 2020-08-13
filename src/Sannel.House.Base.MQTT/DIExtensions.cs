@@ -42,7 +42,7 @@ namespace Microsoft.Extensions.DependencyInjection
 			services.AddSingleton<MqttService>(i =>
 			{
 				var options = new MqttClientOptionsBuilder()
-					.WithTcpServer(defaultTopic, port)
+					.WithTcpServer(server, port)
 					.Build();
 
 				return new MqttService(defaultTopic, options, i.GetService<ILogger<MqttService>>());
