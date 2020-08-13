@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;netstandard2.1;netcoreapp3.1</TargetFrameworks>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<AssemblyVersion>$(Major).$(Minor).$(Patch).$(BuildNumber)</AssemblyVersion>
+		<FileVersion>$(Major).$(Minor).$(Patch).$(BuildNumber)</FileVersion>
+		<Version Condition="'$(Configuration)' != 'Release'">$(Major).$(Minor).$(Patch)-beta</Version>
+		<Version Condition="'$(Configuration)' == 'Release'">$(Major).$(Minor).$(Patch)</Version>
+		<Authors>Adam Holt</Authors>
+		<Description>Base service class to help with mqtt communication and reconnecting</Description>
+		<PackageLicenseUrl></PackageLicenseUrl>
+		<PackageProjectUrl>https://github.com/Sannel/Sannel.House.Base.MQTT</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Sannel/Sannel.House.Base.MQTT</RepositoryUrl>
+		<PackageReleaseNotes></PackageReleaseNotes>
+		<Company>Sannel Software, L.L.C.</Company>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<Copyright>Sannel Software, L.L.C. 2020</Copyright>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="3.1.7" />
+		<PackageReference Include="MQTTnet" Version="3.0.12" />
+		<PackageReference Include="System.Text.Json" Version="4.7.2" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="..\..\LICENSE">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+	</ItemGroup>
+
+</Project>
