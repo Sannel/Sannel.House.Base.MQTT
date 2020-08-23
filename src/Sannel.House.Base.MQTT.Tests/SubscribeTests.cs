@@ -46,7 +46,8 @@ namespace Sannel.House.Base.MQTT.Tests
 
 			var logger = new Mock<ILogger<MqttService>>();
 
-			var service = new MqttServiceAccess(client.Object, "topic1", new MqttClientOptions(), logger.Object);
+			var service = new MqttServiceAccess(client.Object, "topic1", new MqttClientOptions(),
+				null, logger.Object);
 
 			expectedTopic = "test/test1";
 
@@ -111,7 +112,7 @@ namespace Sannel.House.Base.MQTT.Tests
 
 			var logger = new Mock<ILogger<MqttService>>();
 
-			var service = new MqttServiceAccess(client.Object, "topic1", new MqttClientOptions(), logger.Object);
+			var service = new MqttServiceAccess(client.Object, "topic1", new MqttClientOptions(), null, logger.Object);
 
 
 			var topic1Called = 0;

@@ -24,6 +24,9 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
+using Microsoft.Extensions.DependencyInjection;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Sannel.House.Base.MQTT
 {
@@ -52,7 +55,7 @@ namespace Sannel.House.Base.MQTT
 		/// or
 		/// options
 		/// </exception>
-		public MqttService(string defaultTopic, IMqttClientOptions options, ILogger<MqttService> logger)
+		public MqttService(string defaultTopic, IMqttClientOptions options, IEnumerable<IMqttTopicSubscriber> subscribers, ILogger<MqttService> logger)
 		{
 			this.Logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			this.Options = options ?? throw new ArgumentNullException(nameof(options));
@@ -62,6 +65,17 @@ namespace Sannel.House.Base.MQTT
 			MqttClient.ConnectedHandler = this;
 			MqttClient.DisconnectedHandler = this;
 			MqttClient.ApplicationMessageReceivedHandler = this;
+
+			if (!(subscribers is null))
+			{
+				foreach (var topicSubscriber in subscribers)
+				{
+					if (!(topicSubscriber is null))
+					{
+						Subscribe(topicSubscriber.Topic, topicSubscriber.Message);
+					}
+				}
+			}
 		}
 
 		/// <summary>
@@ -71,7 +85,11 @@ namespace Sannel.House.Base.MQTT
 		/// <param name="defaultTopic">The default topic.</param>
 		/// <param name="options">The options.</param>
 		/// <param name="logger">The logger.</param>
-		protected MqttService(IMqttClient client, string defaultTopic, IMqttClientOptions options, ILogger<MqttService> logger) : this(defaultTopic, options, logger)
+		protected MqttService(IMqttClient client, 
+			string defaultTopic, 
+			IMqttClientOptions options, 
+			IEnumerable<IMqttTopicSubscriber> subscribers,
+			ILogger<MqttService> logger) : this(defaultTopic, options, subscribers, logger)
 		{
 			this.MqttClient = client;
 		}

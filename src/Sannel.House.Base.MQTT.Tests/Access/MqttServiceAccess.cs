@@ -12,12 +12,14 @@
 using Microsoft.Extensions.Logging;
 using MQTTnet.Client;
 using MQTTnet.Client.Options;
+using Sannel.House.Base.MQTT.Interfaces;
+using System.Collections.Generic;
 
 namespace Sannel.House.Base.MQTT.Tests.Access
 {
 	public class MqttServiceAccess : MqttService
 	{
-		public MqttServiceAccess(IMqttClient client, string defaultTopic, IMqttClientOptions options, ILogger<MqttService> logger) : base(client, defaultTopic, options, logger)
+		public MqttServiceAccess(IMqttClient client, string defaultTopic, IMqttClientOptions options, IEnumerable<IMqttTopicSubscriber> subscribers, ILogger<MqttService> logger) : base(client, defaultTopic, options, subscribers, logger)
 		{
 
 		}

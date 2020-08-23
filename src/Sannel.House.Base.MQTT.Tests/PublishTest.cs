@@ -44,6 +44,7 @@ namespace Sannel.House.Base.MQTT.Tests
 				});
 
 			var service = new MqttServiceAccess(client.Object, defaultTopic, new MqttClientOptions(),
+				null,
 				(new Mock<ILogger<MqttService>>()).Object);
 
 			var payload = new
@@ -80,6 +81,7 @@ namespace Sannel.House.Base.MQTT.Tests
 				});
 
 			var service = new MqttServiceAccess(client.Object, defaultTopic, new MqttClientOptions(),
+				null,
 				(new Mock<ILogger<MqttService>>()).Object);
 
 			object payload = new
