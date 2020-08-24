@@ -43,6 +43,7 @@ namespace Sannel.House.Base.MQTT.Tests
 					Assert.Equal(expectedTopic, expectedTopic);
 					subscribeCount++;
 				});
+			client.Setup(i => i.IsConnected).Returns(true);
 
 			var logger = new Mock<ILogger<MqttService>>();
 
@@ -109,6 +110,7 @@ namespace Sannel.House.Base.MQTT.Tests
 						Assert.True(false, "Unexpected Topic sent");
 					}
 				});
+			client.Setup(i => i.IsConnected).Returns(true);
 
 			var logger = new Mock<ILogger<MqttService>>();
 

@@ -42,6 +42,8 @@ namespace Sannel.House.Base.MQTT
 		protected readonly IMqttClientOptions Options;
 		protected readonly string DefaultTopic;
 		protected readonly ConcurrentDictionary<string, Action<string, string>> Subscriptions = new ConcurrentDictionary<string, Action<string, string>>();
+		protected readonly ConcurrentQueue<(string topic, Action<string, string> action)> subscriberQueue = new ConcurrentQueue<(string, Action<string, string>)>();
+		protected readonly SemaphoreSlim locker = new SemaphoreSlim(1);
 		private bool shouldReconnect = true;
 
 		/// <summary>
@@ -132,10 +134,18 @@ namespace Sannel.House.Base.MQTT
 
 			if (shouldReconnect)
 			{
-				await Task.Delay(TimeSpan.FromSeconds(30));
-				Logger.LogInformation("Attempting reconnect");
-				await MqttClient.ReconnectAsync();
-				Logger.LogInformation("Is Connected {0}", MqttClient.IsConnected);
+				await locker.WaitAsync();
+				try
+				{
+					await Task.Delay(TimeSpan.FromSeconds(30));
+					Logger.LogInformation("Attempting reconnect");
+					await MqttClient.ReconnectAsync();
+					Logger.LogInformation("Is Connected {0}", MqttClient.IsConnected);
+				}
+				finally
+				{
+					locker.Release();
+				}
 			}
 
 
@@ -194,11 +204,29 @@ namespace Sannel.House.Base.MQTT
 		/// <param name="cancellationToken">Indicates that the start process has been aborted.</param>
 		public async Task StartAsync(CancellationToken cancellationToken)
 		{
-			await MqttClient.ConnectAsync(Options);
+			await locker.WaitAsync(cancellationToken);
 
-			if (!MqttClient.IsConnected)
+			try
 			{
-				await MqttClient.ReconnectAsync();
+				await MqttClient.ConnectAsync(Options);
+
+				if (!MqttClient.IsConnected)
+				{
+					await MqttClient.ReconnectAsync();
+				}
+
+				while (!subscriberQueue.IsEmpty)
+				{
+					if(subscriberQueue.TryDequeue(out var sub))
+					{
+						Subscriptions[sub.topic] = sub.action;
+						await MqttClient.SubscribeAsync(sub.topic);
+					}
+				}
+			}
+			finally
+			{
+				locker.Release();
 			}
 		}
 
@@ -225,10 +253,25 @@ namespace Sannel.House.Base.MQTT
 		/// </remarks>
 		/// <param name="topic">The topic.</param>
 		/// <param name="callback">The callback.</param>
-		public void Subscribe(string topic, Action<string, string> callback)
+		public async void Subscribe(string topic, Action<string, string> callback)
 		{
-			Subscriptions[topic] = callback;
-			MqttClient.SubscribeAsync(topic);
+			await locker.WaitAsync();
+			try
+			{
+				if(MqttClient.IsConnected)
+				{
+					Subscriptions[topic] = callback;
+					await MqttClient.SubscribeAsync(topic);
+				}
+				else
+				{
+					subscriberQueue.Enqueue((topic, callback));
+				}
+			}
+			finally
+			{
+				locker.Release();
+			}
 		}
 	}
 }
