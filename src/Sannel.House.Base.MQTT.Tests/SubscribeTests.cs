@@ -15,6 +15,7 @@ using MQTTnet.Client;
 using MQTTnet.Client.Options;
 using MQTTnet.Client.Subscribing;
 using Sannel.House.Base.MQTT.Tests.Access;
+using System;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -47,8 +48,9 @@ namespace Sannel.House.Base.MQTT.Tests
 
 			var logger = new Mock<ILogger<MqttService>>();
 
+			var serviceProvider = new Mock<IServiceProvider>();
 			var service = new MqttServiceAccess(client.Object, "topic1", new MqttClientOptions(),
-				null, logger.Object);
+				serviceProvider.Object, logger.Object);
 
 			expectedTopic = "test/test1";
 
@@ -114,7 +116,8 @@ namespace Sannel.House.Base.MQTT.Tests
 
 			var logger = new Mock<ILogger<MqttService>>();
 
-			var service = new MqttServiceAccess(client.Object, "topic1", new MqttClientOptions(), null, logger.Object);
+			var serviceProvider = new Mock<IServiceProvider>();
+			var service = new MqttServiceAccess(client.Object, "topic1", new MqttClientOptions(), serviceProvider.Object, logger.Object);
 
 
 			var topic1Called = 0;

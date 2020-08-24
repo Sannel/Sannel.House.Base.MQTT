@@ -43,8 +43,10 @@ namespace Sannel.House.Base.MQTT.Tests
 					Assert.Equal(defaultTopic, message.Topic);
 				});
 
+			var serviceProvider = new Mock<IServiceProvider>();
+
 			var service = new MqttServiceAccess(client.Object, defaultTopic, new MqttClientOptions(),
-				null,
+				serviceProvider.Object,
 				(new Mock<ILogger<MqttService>>()).Object);
 
 			var payload = new
@@ -79,9 +81,10 @@ namespace Sannel.House.Base.MQTT.Tests
 
 					Assert.Equal(Encoding.UTF8.GetBytes(messageJson), message.Payload);
 				});
+			var serviceProvider = new Mock<IServiceProvider>();
 
 			var service = new MqttServiceAccess(client.Object, defaultTopic, new MqttClientOptions(),
-				null,
+				serviceProvider.Object,
 				(new Mock<ILogger<MqttService>>()).Object);
 
 			object payload = new

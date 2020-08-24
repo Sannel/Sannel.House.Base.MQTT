@@ -43,6 +43,7 @@ namespace Sannel.House.Base.MQTT
 		protected readonly string DefaultTopic;
 		protected readonly ConcurrentDictionary<string, Action<string, string>> Subscriptions = new ConcurrentDictionary<string, Action<string, string>>();
 		protected readonly ConcurrentQueue<(string topic, Action<string, string> action)> subscriberQueue = new ConcurrentQueue<(string, Action<string, string>)>();
+		protected readonly IServiceProvider services;
 		protected readonly SemaphoreSlim locker = new SemaphoreSlim(1);
 		private bool shouldReconnect = true;
 
@@ -57,27 +58,17 @@ namespace Sannel.House.Base.MQTT
 		/// or
 		/// options
 		/// </exception>
-		public MqttService(string defaultTopic, IMqttClientOptions options, IEnumerable<IMqttTopicSubscriber> subscribers, ILogger<MqttService> logger)
+		public MqttService(string defaultTopic, IMqttClientOptions options, IServiceProvider services, ILogger<MqttService> logger)
 		{
 			this.Logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			this.Options = options ?? throw new ArgumentNullException(nameof(options));
+			this.services = services ?? throw new ArgumentNullException(nameof(services));
 			this.DefaultTopic = defaultTopic;
 			MqttClient = new MqttFactory().CreateMqttClient();
 
 			MqttClient.ConnectedHandler = this;
 			MqttClient.DisconnectedHandler = this;
 			MqttClient.ApplicationMessageReceivedHandler = this;
-
-			if (!(subscribers is null))
-			{
-				foreach (var topicSubscriber in subscribers)
-				{
-					if (!(topicSubscriber is null))
-					{
-						Subscribe(topicSubscriber.Topic, topicSubscriber.Message);
-					}
-				}
-			}
 		}
 
 		/// <summary>
@@ -90,8 +81,8 @@ namespace Sannel.House.Base.MQTT
 		protected MqttService(IMqttClient client, 
 			string defaultTopic, 
 			IMqttClientOptions options, 
-			IEnumerable<IMqttTopicSubscriber> subscribers,
-			ILogger<MqttService> logger) : this(defaultTopic, options, subscribers, logger)
+			IServiceProvider services,
+			ILogger<MqttService> logger) : this(defaultTopic, options, services, logger)
 		{
 			this.MqttClient = client;
 		}
@@ -213,6 +204,17 @@ namespace Sannel.House.Base.MQTT
 				if (!MqttClient.IsConnected)
 				{
 					await MqttClient.ReconnectAsync();
+				}
+
+				var subscribers = services.GetServices<IMqttTopicSubscriber>();
+
+				foreach(var sub in subscribers)
+				{
+					if (sub != null)
+					{
+						Subscriptions[sub.Topic] = sub.Message;
+						await MqttClient.SubscribeAsync(sub.Topic);
+					}
 				}
 
 				while (!subscriberQueue.IsEmpty)
