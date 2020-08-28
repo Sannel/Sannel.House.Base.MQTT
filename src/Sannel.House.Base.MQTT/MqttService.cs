@@ -27,25 +27,22 @@ using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections;
 using System.Collections.Generic;
+using MQTTnet.Extensions.ManagedClient;
+using Microsoft.Extensions.Configuration;
 
 namespace Sannel.House.Base.MQTT
 {
 	public class MqttService : IHostedService,
-								IMqttClientConnectedHandler,
-								IMqttClientDisconnectedHandler,
 								IMqttApplicationMessageReceivedHandler,
 								IMqttClientPublishService,
 								IMqttClientSubscribeService
 	{
 		protected readonly ILogger Logger;
-		protected readonly IMqttClient MqttClient;
-		protected readonly IMqttClientOptions Options;
+		protected readonly IManagedMqttClient MqttClient;
+		protected readonly IManagedMqttClientOptions options;
 		protected readonly string DefaultTopic;
 		protected readonly ConcurrentDictionary<string, Action<string, string>> Subscriptions = new ConcurrentDictionary<string, Action<string, string>>();
-		protected readonly ConcurrentQueue<(string topic, Action<string, string> action)> subscriberQueue = new ConcurrentQueue<(string, Action<string, string>)>();
 		protected readonly IServiceProvider services;
-		protected readonly SemaphoreSlim locker = new SemaphoreSlim(1);
-		private bool shouldReconnect = true;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="MqttService"/> class.
@@ -58,16 +55,20 @@ namespace Sannel.House.Base.MQTT
 		/// or
 		/// options
 		/// </exception>
-		public MqttService(string defaultTopic, IMqttClientOptions options, IServiceProvider services, ILogger<MqttService> logger)
+		public MqttService(string defaultTopic, IMqttClientOptions clientOptions, IServiceProvider services, IConfiguration configuration, ILogger<MqttService> logger)
 		{
 			this.Logger = logger ?? throw new ArgumentNullException(nameof(logger));
-			this.Options = options ?? throw new ArgumentNullException(nameof(options));
 			this.services = services ?? throw new ArgumentNullException(nameof(services));
 			this.DefaultTopic = defaultTopic;
-			MqttClient = new MqttFactory().CreateMqttClient();
 
-			MqttClient.ConnectedHandler = this;
-			MqttClient.DisconnectedHandler = this;
+			var reconnectMilliseconds = configuration.GetValue<int?>("MQTT:ReconnectMilliseconds") ?? 5000;
+
+			options = new ManagedMqttClientOptionsBuilder()
+				.WithAutoReconnectDelay(TimeSpan.FromMilliseconds(reconnectMilliseconds))
+				.WithClientOptions(clientOptions ?? throw new ArgumentNullException(nameof(clientOptions)))
+				.Build();
+
+			MqttClient = new MqttFactory().CreateManagedMqttClient();
 			MqttClient.ApplicationMessageReceivedHandler = this;
 		}
 
@@ -78,11 +79,12 @@ namespace Sannel.House.Base.MQTT
 		/// <param name="defaultTopic">The default topic.</param>
 		/// <param name="options">The options.</param>
 		/// <param name="logger">The logger.</param>
-		protected MqttService(IMqttClient client, 
-			string defaultTopic, 
-			IMqttClientOptions options, 
+		protected MqttService(IManagedMqttClient client,
+			string defaultTopic,
+			IMqttClientOptions options,
 			IServiceProvider services,
-			ILogger<MqttService> logger) : this(defaultTopic, options, services, logger)
+			IConfiguration configuration,
+			ILogger<MqttService> logger) : this(defaultTopic, options, services, configuration, logger)
 		{
 			this.MqttClient = client;
 		}
@@ -92,8 +94,8 @@ namespace Sannel.House.Base.MQTT
 		/// </summary>
 		/// <param name="eventArgs">The <see cref="MqttApplicationMessageReceivedEventArgs"/> instance containing the event data.</param>
 		/// <returns></returns>
-		public Task HandleApplicationMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs eventArgs)
-			=> Task.Run(() =>
+		public async Task HandleApplicationMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs eventArgs)
+			=> await Task.Run(() =>
 			{
 				var topic = eventArgs.ApplicationMessage.Topic;
 				if (Subscriptions.TryGetValue(topic, out var callback))
@@ -101,46 +103,8 @@ namespace Sannel.House.Base.MQTT
 					var payload = Encoding.UTF8.GetString(eventArgs.ApplicationMessage.Payload);
 					callback(topic, payload);
 				}
-			});
+			}).ConfigureAwait(false);
 
-		/// <summary>
-		/// Handles the connected asynchronous.
-		/// </summary>
-		/// <param name="eventArgs">The <see cref="MqttClientConnectedEventArgs"/> instance containing the event data.</param>
-		/// <returns></returns>
-		public Task HandleConnectedAsync(MqttClientConnectedEventArgs eventArgs)
-		{
-			Logger.LogDebug("Connected ResultCode {0}", eventArgs.AuthenticateResult.ResultCode);
-			return Task.CompletedTask;
-
-		}
-
-		/// <summary>
-		/// Handles the disconnected asynchronous.
-		/// </summary>
-		/// <param name="eventArgs">The <see cref="MqttClientDisconnectedEventArgs"/> instance containing the event data.</param>
-		public async Task HandleDisconnectedAsync(MqttClientDisconnectedEventArgs eventArgs)
-		{
-			Logger.LogError("Disconnected ResultCode {0}", eventArgs.ReasonCode);
-
-			if (shouldReconnect)
-			{
-				await locker.WaitAsync();
-				try
-				{
-					await Task.Delay(TimeSpan.FromSeconds(30));
-					Logger.LogInformation("Attempting reconnect");
-					await MqttClient.ReconnectAsync();
-					Logger.LogInformation("Is Connected {0}", MqttClient.IsConnected);
-				}
-				finally
-				{
-					locker.Release();
-				}
-			}
-
-
-		}
 
 		/// <summary>
 		/// Publish the payload to the default topic
@@ -195,57 +159,26 @@ namespace Sannel.House.Base.MQTT
 		/// <param name="cancellationToken">Indicates that the start process has been aborted.</param>
 		public async Task StartAsync(CancellationToken cancellationToken)
 		{
-			await locker.WaitAsync(cancellationToken);
 
-			try
+			var subscribers = services.GetServices<IMqttTopicSubscriber>();
+
+			foreach (var sub in subscribers)
 			{
-				await MqttClient.ConnectAsync(Options);
-
-				if (!MqttClient.IsConnected)
+				if (sub != null)
 				{
-					await MqttClient.ReconnectAsync();
-				}
-
-				var subscribers = services.GetServices<IMqttTopicSubscriber>();
-
-				foreach(var sub in subscribers)
-				{
-					if (sub != null)
-					{
-						Subscriptions[sub.Topic] = sub.Message;
-						await MqttClient.SubscribeAsync(sub.Topic);
-					}
-				}
-
-				while (!subscriberQueue.IsEmpty)
-				{
-					if(subscriberQueue.TryDequeue(out var sub))
-					{
-						Subscriptions[sub.topic] = sub.action;
-						await MqttClient.SubscribeAsync(sub.topic);
-					}
+					this.Subscribe(sub.Topic, sub.Message);
 				}
 			}
-			finally
-			{
-				locker.Release();
-			}
+
+			await MqttClient.StartAsync(options);
 		}
 
 		/// <summary>
 		/// Triggered when the application host is performing a graceful shutdown.
 		/// </summary>
 		/// <param name="cancellationToken">Indicates that the shutdown process should no longer be graceful.</param>
-		public async Task StopAsync(CancellationToken cancellationToken)
-		{
-			shouldReconnect = false;
-			await MqttClient.DisconnectAsync(new MqttClientDisconnectOptions()
-			{
-				ReasonCode = MqttClientDisconnectReason.NormalDisconnection,
-				ReasonString = "NormalDisconnection"
-			});
-
-		}
+		public Task StopAsync(CancellationToken cancellationToken)
+			=> MqttClient.StopAsync();
 
 		/// <summary>
 		/// Subscribes to the specified topic with the callback
@@ -257,23 +190,8 @@ namespace Sannel.House.Base.MQTT
 		/// <param name="callback">The callback.</param>
 		public async void Subscribe(string topic, Action<string, string> callback)
 		{
-			await locker.WaitAsync();
-			try
-			{
-				if(MqttClient.IsConnected)
-				{
-					Subscriptions[topic] = callback;
-					await MqttClient.SubscribeAsync(topic);
-				}
-				else
-				{
-					subscriberQueue.Enqueue((topic, callback));
-				}
-			}
-			finally
-			{
-				locker.Release();
-			}
+			Subscriptions[topic] = callback;
+			await MqttClient.SubscribeAsync(topic);
 		}
 	}
 }

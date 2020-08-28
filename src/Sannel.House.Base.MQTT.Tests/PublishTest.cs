@@ -9,13 +9,16 @@
    See the License for the specific language governing permissions and
    limitations under the License.*/
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Options;
+using MQTTnet.Extensions.ManagedClient;
 using Sannel.House.Base.MQTT.Tests.Access;
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -34,7 +37,7 @@ namespace Sannel.House.Base.MQTT.Tests
 
 			var callback = 0;
 
-			var client = new Moq.Mock<IMqttClient>();
+			var client = new Moq.Mock<IManagedMqttClient>();
 			client.Setup(i => i.PublishAsync(It.IsAny<MqttApplicationMessage>(), It.IsAny<System.Threading.CancellationToken>()))
 				.Callback<MqttApplicationMessage, CancellationToken>((message, token) =>
 				{
@@ -44,9 +47,12 @@ namespace Sannel.House.Base.MQTT.Tests
 				});
 
 			var serviceProvider = new Mock<IServiceProvider>();
+			var configurationBuilder = new ConfigurationBuilder();
+			var configuration = configurationBuilder.Build();
 
 			var service = new MqttServiceAccess(client.Object, defaultTopic, new MqttClientOptions(),
 				serviceProvider.Object,
+				configuration,
 				(new Mock<ILogger<MqttService>>()).Object);
 
 			var payload = new
@@ -71,7 +77,7 @@ namespace Sannel.House.Base.MQTT.Tests
 
 			var callback = 0;
 
-			var client = new Moq.Mock<IMqttClient>();
+			var client = new Moq.Mock<IManagedMqttClient>();
 			client.Setup(i => i.PublishAsync(It.IsAny<MqttApplicationMessage>(), It.IsAny<System.Threading.CancellationToken>()))
 				.Callback<MqttApplicationMessage, CancellationToken>((message, token) =>
 				{
@@ -83,8 +89,12 @@ namespace Sannel.House.Base.MQTT.Tests
 				});
 			var serviceProvider = new Mock<IServiceProvider>();
 
+			var configurationBuilder = new ConfigurationBuilder();
+			var configuration = configurationBuilder.Build();
+
 			var service = new MqttServiceAccess(client.Object, defaultTopic, new MqttClientOptions(),
 				serviceProvider.Object,
+				configuration,
 				(new Mock<ILogger<MqttService>>()).Object);
 
 			object payload = new

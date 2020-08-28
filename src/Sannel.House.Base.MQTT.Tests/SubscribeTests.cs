@@ -9,13 +9,19 @@
    See the License for the specific language governing permissions and
    limitations under the License.*/
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
+using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Options;
 using MQTTnet.Client.Subscribing;
+using MQTTnet.Extensions.ManagedClient;
 using Sannel.House.Base.MQTT.Tests.Access;
 using System;
+using System.Linq;
+using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -33,14 +39,12 @@ namespace Sannel.House.Base.MQTT.Tests
 
 			var subscribeCount = 0;
 
-			var client = new Moq.Mock<IMqttClient>();
-			client.Setup(i => i.SubscribeAsync(
-								It.IsAny<MqttClientSubscribeOptions>(),
-								It.IsAny<System.Threading.CancellationToken>()))
-				.Callback<MqttClientSubscribeOptions, CancellationToken>((options, token) =>
+			var client = new Moq.Mock<IManagedMqttClient>();
+			_ = client.Setup(i => i.SubscribeAsync(It.IsAny<IEnumerable<MqttTopicFilter>>()))
+				.Callback <IEnumerable<MqttTopicFilter>>((filters) =>
 				{
-					Assert.Single(options.TopicFilters);
-					var topic = options.TopicFilters[0];
+					Assert.Single(filters);
+					var topic = filters.FirstOrDefault();
 					Assert.Equal(expectedTopic, expectedTopic);
 					subscribeCount++;
 				});
@@ -49,8 +53,14 @@ namespace Sannel.House.Base.MQTT.Tests
 			var logger = new Mock<ILogger<MqttService>>();
 
 			var serviceProvider = new Mock<IServiceProvider>();
-			var service = new MqttServiceAccess(client.Object, "topic1", new MqttClientOptions(),
-				serviceProvider.Object, logger.Object);
+
+			var configurationBuilder = new ConfigurationBuilder();
+			var configuration = configurationBuilder.Build();
+
+			var service = new MqttServiceAccess(client.Object, "cheese", new MqttClientOptions(),
+				serviceProvider.Object,
+				configuration,
+				(new Mock<ILogger<MqttService>>()).Object);
 
 			expectedTopic = "test/test1";
 
@@ -91,14 +101,12 @@ namespace Sannel.House.Base.MQTT.Tests
 			var topic1Count = 0;
 			var topic2Count = 0;
 
-			var client = new Moq.Mock<IMqttClient>();
-			client.Setup(i => i.SubscribeAsync(
-								It.IsAny<MqttClientSubscribeOptions>(),
-								It.IsAny<System.Threading.CancellationToken>()))
-				.Callback<MqttClientSubscribeOptions, CancellationToken>((options, token) =>
+			var client = new Moq.Mock<IManagedMqttClient>();
+			_ = client.Setup(i => i.SubscribeAsync(It.IsAny<IEnumerable<MqttTopicFilter>>()))
+				.Callback <IEnumerable<MqttTopicFilter>>((filters) =>
 				{
-					Assert.Single(options.TopicFilters);
-					var topic = options.TopicFilters[0].Topic;
+					Assert.Single(filters);
+					var topic = filters.FirstOrDefault().Topic;
 					if (topic == expectedTopic1)
 					{
 						topic1Count++;
@@ -117,7 +125,13 @@ namespace Sannel.House.Base.MQTT.Tests
 			var logger = new Mock<ILogger<MqttService>>();
 
 			var serviceProvider = new Mock<IServiceProvider>();
-			var service = new MqttServiceAccess(client.Object, "topic1", new MqttClientOptions(), serviceProvider.Object, logger.Object);
+			var configurationBuilder = new ConfigurationBuilder();
+			var configuration = configurationBuilder.Build();
+
+			var service = new MqttServiceAccess(client.Object, "cheese", new MqttClientOptions(),
+				serviceProvider.Object,
+				configuration,
+				(new Mock<ILogger<MqttService>>()).Object);
 
 
 			var topic1Called = 0;

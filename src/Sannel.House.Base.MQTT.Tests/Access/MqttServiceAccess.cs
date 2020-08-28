@@ -9,9 +9,11 @@
    See the License for the specific language governing permissions and
    limitations under the License.*/
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MQTTnet.Client;
 using MQTTnet.Client.Options;
+using MQTTnet.Extensions.ManagedClient;
 using Sannel.House.Base.MQTT.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -20,7 +22,7 @@ namespace Sannel.House.Base.MQTT.Tests.Access
 {
 	public class MqttServiceAccess : MqttService
 	{
-		public MqttServiceAccess(IMqttClient client, string defaultTopic, IMqttClientOptions options, IServiceProvider provider, ILogger<MqttService> logger) : base(client, defaultTopic, options, provider, logger)
+		public MqttServiceAccess(IManagedMqttClient client, string defaultTopic, IMqttClientOptions options, IServiceProvider provider, IConfiguration configuration, ILogger<MqttService> logger) : base(client, defaultTopic, options, provider, configuration, logger)
 		{
 
 		}
