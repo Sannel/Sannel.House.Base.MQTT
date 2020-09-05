@@ -142,14 +142,14 @@ namespace Sannel.House.Base.MQTT
 
 			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				Logger.LogDebug("MQTT Publish topic {0} payload {1}", topic, message);
+				Logger.LogDebug("MQTT Publish topic {topic} payload {message}", topic, message);
 			}
 
 			var result = await MqttClient.PublishAsync(topic, message);
 
 			if (Logger.IsEnabled(LogLevel.Debug))
 			{
-				Logger.LogDebug("MQTT Publish Status {0} topic {1} payload {2}", result.ReasonCode, topic, message);
+				Logger.LogDebug("MQTT Publish Status {status} topic {topic} payload {message}", result.ReasonCode, topic, message);
 			}
 		}
 
@@ -166,7 +166,14 @@ namespace Sannel.House.Base.MQTT
 			{
 				if (sub != null)
 				{
-					this.Subscribe(sub.Topic, sub.Message);
+					if (string.IsNullOrWhiteSpace(sub.Topic))
+					{
+						Logger.LogWarning("Invalid Topic for type {typeFullName} cannot subscribe", sub.GetType()?.FullName);
+					}
+					else
+					{
+						this.Subscribe(sub.Topic, sub.Message);
+					}
 				}
 			}
 
@@ -190,8 +197,19 @@ namespace Sannel.House.Base.MQTT
 		/// <param name="callback">The callback.</param>
 		public async void Subscribe(string topic, Action<string, string> callback)
 		{
-			Subscriptions[topic] = callback;
-			await MqttClient.SubscribeAsync(topic);
+			if (string.IsNullOrWhiteSpace(topic))
+			{
+				Logger.LogError("Invalid Topic passed for callback {callback}", callback?.Method?.Name);
+			}
+			else if(callback is null)
+			{
+				Logger.LogError("Null call back for topic {topic}", topic);
+			}
+			else
+			{
+				Subscriptions[topic] = callback;
+				await MqttClient.SubscribeAsync(topic);
+			}
 		}
 	}
 }
