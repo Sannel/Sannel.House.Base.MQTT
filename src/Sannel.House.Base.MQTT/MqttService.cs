@@ -55,10 +55,25 @@ namespace Sannel.House.Base.MQTT
 		/// or
 		/// options
 		/// </exception>
-		public MqttService(string defaultTopic, IMqttClientOptions clientOptions, IServiceProvider services, IConfiguration configuration, ILogger<MqttService> logger)
+		public MqttService(string defaultTopic, 
+			IMqttClientOptions clientOptions, 
+			IServiceProvider services, 
+			IConfiguration configuration, 
+			ILogger<MqttService> logger)
 		{
-			this.Logger = logger ?? throw new ArgumentNullException(nameof(logger));
-			this.services = services ?? throw new ArgumentNullException(nameof(services));
+#if NETSTANDARD2_0 || NETCOREAPP2_1
+			if(logger is null)
+			{
+				throw new ArgumentNullException(nameof(logger));
+			}
+
+			if(services is null)
+			{
+				throw new ArgumentNullException(nameof(services));
+			}
+#endif
+			this.Logger = logger;
+			this.services = services;
 			this.DefaultTopic = defaultTopic;
 
 			var reconnectMilliseconds = configuration.GetValue<int?>("MQTT:ReconnectMilliseconds") ?? 5000;
@@ -138,7 +153,7 @@ namespace Sannel.House.Base.MQTT
 		/// <param name="payload">The payload.</param>
 		public async Task PublishAsync(string topic, object payload)
 		{
-			var message = JsonSerializer.Serialize(payload);
+			string message = JsonSerializer.Serialize(payload);
 
 			if (Logger.IsEnabled(LogLevel.Debug))
 			{
@@ -201,10 +216,12 @@ namespace Sannel.House.Base.MQTT
 			{
 				Logger.LogError("Invalid Topic passed for callback {callback}", callback?.Method?.Name);
 			}
+#if NETCOREAPP2_1 || NETSTANDARD2_0
 			else if(callback is null)
 			{
 				Logger.LogError("Null call back for topic {topic}", topic);
 			}
+#endif
 			else
 			{
 				Subscriptions[topic] = callback;
