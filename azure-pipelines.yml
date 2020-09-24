@@ -11,6 +11,9 @@ variables:
   support_netcoreapp21: true
   support_netcoreapp31: true
   support_net5_0: true
+  Major: 0
+  Minor: 9
+
 
 resources:
   repositories:

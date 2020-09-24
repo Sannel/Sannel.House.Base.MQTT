@@ -46,7 +46,11 @@ namespace Microsoft.Extensions.DependencyInjection
 					.WithTcpServer(server, port)
 					.Build();
 
-				return new MqttService(defaultTopic, options, i, i.GetService<IConfiguration>(), i.GetService<ILogger<MqttService>>());
+				return new MqttService(defaultTopic, 
+					options, 
+					i, 
+					i.GetService<IConfiguration>(), 
+					i.GetService<ILogger<MqttService>>());
 			});
 
 			services.AddSingleton<IMqttClientPublishService>(i => i.GetService<MqttService>());

@@ -61,17 +61,26 @@ namespace Sannel.House.Base.MQTT
 			IConfiguration configuration, 
 			ILogger<MqttService> logger)
 		{
-#if NETSTANDARD2_0 || NETCOREAPP2_1
-			if(logger is null)
+			if(clientOptions is null)
 			{
-				throw new ArgumentNullException(nameof(logger));
+				throw new ArgumentNullException(nameof(clientOptions));
 			}
 
 			if(services is null)
 			{
 				throw new ArgumentNullException(nameof(services));
 			}
-#endif
+
+			if(configuration is null)
+			{
+				throw new ArgumentNullException(nameof(configuration));
+			}
+
+			if(logger is null)
+			{
+				throw new ArgumentNullException(nameof(logger));
+			}
+
 			this.Logger = logger;
 			this.services = services;
 			this.DefaultTopic = defaultTopic;
@@ -112,11 +121,21 @@ namespace Sannel.House.Base.MQTT
 		public async Task HandleApplicationMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs eventArgs)
 			=> await Task.Run(() =>
 			{
-				var topic = eventArgs.ApplicationMessage.Topic;
-				if (Subscriptions.TryGetValue(topic, out var callback))
+				try
 				{
-					var payload = Encoding.UTF8.GetString(eventArgs.ApplicationMessage.Payload);
-					callback(topic, payload);
+					var topic = eventArgs.ApplicationMessage.Topic;
+					if (Subscriptions.TryGetValue(topic, out var callback))
+					{
+						var payload = Encoding.UTF8.GetString(eventArgs.ApplicationMessage.Payload);
+						callback(topic, payload);
+					}
+				}
+				catch(Exception ex)
+				{
+					Logger.LogError(ex,
+						"Exception thrown when processing message topic: {topic} message: {message}",
+						eventArgs?.ApplicationMessage?.Topic,
+						eventArgs?.ApplicationMessage?.Payload);
 				}
 			}).ConfigureAwait(false);
 

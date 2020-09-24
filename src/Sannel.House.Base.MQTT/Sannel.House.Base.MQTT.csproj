@@ -15,7 +15,7 @@
 		<PackageReleaseNotes></PackageReleaseNotes>
 		<Company>Sannel Software, L.L.C.</Company>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
-		<Copyright>Sannel Software, L.L.C. 2020</Copyright>
+		<Copyright>Sannel Software, L.L.C. $([System.DateTime]::Now.ToString('yyyy'))</Copyright>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.1' 
