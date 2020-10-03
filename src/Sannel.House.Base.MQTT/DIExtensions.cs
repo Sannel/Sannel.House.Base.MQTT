@@ -98,6 +98,41 @@ namespace Microsoft.Extensions.DependencyInjection
 
 			return services;
 		}
+
+		/// <summary>
+		/// Adds the MQTT service.
+		/// </summary>
+		/// <param name="services">The services.</param>
+		/// <param name="configuration">The configuration.</param>
+		/// <example>
+		/// Example Configuration Json. Only Server, and DefaultTopic are Required.
+		/// {
+		///     "MQTT": {
+		///         "Server": "localhost",
+		///         "DefaultTopic": "local/house",
+		///         "Port": 1883,
+		///         "EnableSSL": true,
+		///         "CertSubject": "CN = test.com",
+		///         "CertIssuer": "CN = Let's Encrypt Authority X3
+		/// O = Let's Encrypt
+		/// C = US",
+		///         "Username": "Hodierne",
+		///         "Password": "Fridayweed"
+		///     }
+		/// }
+		/// </example>
+		/// <returns></returns>
+		public static IServiceCollection AddMqttService(this IServiceCollection services, IConfiguration configuration) 
+			=> AddMqttService(services,
+				server: configuration["MQTT:Server"],
+				defaultTopic: configuration["MQTT:DefaultTopic"],
+				port: configuration.GetValue<int?>("MQTT:Port"),
+				ssl: configuration.GetValue<bool>("MQTT:EnableSSL"),
+				certSubject: configuration["MQTT:CertSubject"],
+				certIssuer: configuration["MQTT:CertIssuer"],
+				username: configuration["MQTT:Username"],
+				password: configuration["MQTT:Password"]);
+
 		/// <summary>
 		/// Adds the MQTT subscribe service.
 		/// </summary>
