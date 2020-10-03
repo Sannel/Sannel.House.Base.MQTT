@@ -17,6 +17,10 @@ variables:
 
 resources:
   repositories:
+    - repository: mqtt
+      type: github
+      name: Sannel/Sannel.House.base.MQTT
+      endpoint: Sannel
     - repository: templates
       type: github
       name: Sannel/Sannel.House.BuildScripts

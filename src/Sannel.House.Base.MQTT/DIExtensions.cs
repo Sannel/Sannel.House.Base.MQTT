@@ -19,16 +19,29 @@ namespace Microsoft.Extensions.DependencyInjection
 		/// <param name="server">The server.</param>
 		/// <param name="defaultTopic">The default topic.</param>
 		/// <param name="port">The port.</param>
+		/// <param name="ssl">if set to <c>true</c> [SSL].</param>
+		/// <param name="certSubject">The cert subject.</param>
+		/// <param name="certIssuer">The cert issuer.</param>
+		/// <param name="username">The username.</param>
+		/// <param name="password">The password.</param>
 		/// <returns></returns>
-		/// <exception cref="System.ArgumentNullException">
+		/// <exception cref="ArgumentNullException">
 		/// services
 		/// or
 		/// server
 		/// </exception>
+		/// <exception cref="System.ArgumentNullException">services
+		/// or
+		/// server</exception>
 		public static IServiceCollection AddMqttService(this IServiceCollection services,
 			string server,
 			string defaultTopic,
-			int? port = null)
+			int? port = null,
+			bool ssl = false,
+			string certSubject = null,
+			string certIssuer = null,
+			string username = null,
+			string password = null)
 		{
 			if(services is null)
 			{
@@ -42,8 +55,33 @@ namespace Microsoft.Extensions.DependencyInjection
 
 			services.AddSingleton<MqttService>(i =>
 			{
-				var options = new MqttClientOptionsBuilder()
-					.WithTcpServer(server, port)
+				var optionBuilder = new MqttClientOptionsBuilder()
+					.WithTcpServer(server, port);
+
+				if(!string.IsNullOrWhiteSpace(username)
+					&& !string.IsNullOrWhiteSpace(password))
+				{
+					optionBuilder.WithCredentials(username, password);
+				}
+
+				if(ssl)
+				{
+					optionBuilder.WithTls(p =>
+					{
+						if(!string.IsNullOrWhiteSpace(certSubject)
+							&& !string.IsNullOrWhiteSpace(certIssuer))
+						{
+							p.CertificateValidationHandler = c =>
+							{
+								return
+									string.Equals(certSubject, c.Certificate.Subject, StringComparison.OrdinalIgnoreCase)
+									&& string.Equals(certIssuer, c.Certificate.Issuer, StringComparison.OrdinalIgnoreCase);
+							};
+						}
+					});
+				}
+
+				var options = optionBuilder
 					.Build();
 
 				return new MqttService(defaultTopic, 
@@ -66,15 +104,28 @@ namespace Microsoft.Extensions.DependencyInjection
 		/// <param name="services">The services.</param>
 		/// <param name="server">The server.</param>
 		/// <param name="port">The port.</param>
+		/// <param name="ssl">if set to <c>true</c> [SSL].</param>
+		/// <param name="certSubject">The cert subject.</param>
+		/// <param name="certIssuer">The cert issuer.</param>
+		/// <param name="username">The username.</param>
+		/// <param name="password">The password.</param>
 		/// <returns></returns>
-		/// <exception cref="System.ArgumentNullException">
+		/// <exception cref="ArgumentNullException">
 		/// services
 		/// or
 		/// server
 		/// </exception>
+		/// <exception cref="System.ArgumentNullException">services
+		/// or
+		/// server</exception>
 		public static IServiceCollection AddMqttSubscribeService(this IServiceCollection services,
 			string server,
-			int? port = null)
+			int? port = null,
+			bool ssl = false,
+			string certSubject = null,
+			string certIssuer = null,
+			string username = null,
+			string password = null)
 		{
 			if(services is null)
 			{
@@ -86,7 +137,7 @@ namespace Microsoft.Extensions.DependencyInjection
 				throw new ArgumentNullException(nameof(server));
 			}
 
-			services.AddMqttService(server, "unknown", port);
+			services.AddMqttService(server, "unknown", port, ssl, certSubject, certIssuer, username, password);
 
 			return services;
 		}
@@ -98,16 +149,29 @@ namespace Microsoft.Extensions.DependencyInjection
 		/// <param name="server">The server.</param>
 		/// <param name="defaultTopic">The default topic.</param>
 		/// <param name="port">The port.</param>
+		/// <param name="ssl">if set to <c>true</c> [SSL].</param>
+		/// <param name="certSubject">The cert subject.</param>
+		/// <param name="certIssuer">The cert issuer.</param>
+		/// <param name="username">The username.</param>
+		/// <param name="password">The password.</param>
 		/// <returns></returns>
-		/// <exception cref="System.ArgumentNullException">
+		/// <exception cref="ArgumentNullException">
 		/// services
 		/// or
 		/// server
 		/// </exception>
+		/// <exception cref="System.ArgumentNullException">services
+		/// or
+		/// server</exception>
 		public static IServiceCollection AddMqttPublishService(this IServiceCollection services, 
 			string server,
 			string defaultTopic,
-			int? port=null)
+			int? port = null,
+			bool ssl = false,
+			string certSubject = null,
+			string certIssuer = null,
+			string username = null,
+			string password = null)
 		{
 			if(services is null)
 			{
@@ -119,7 +183,7 @@ namespace Microsoft.Extensions.DependencyInjection
 				throw new ArgumentNullException(nameof(server));
 			}
 
-			services.AddMqttService(server, defaultTopic, port);
+			services.AddMqttService(server, defaultTopic, port, ssl, certSubject, certIssuer, username, password);
 
 			return services;
 		}
