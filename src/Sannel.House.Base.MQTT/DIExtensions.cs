@@ -10,6 +10,9 @@ using System.Text;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
+	/// <summary>
+	/// 
+	/// </summary>
 	public static class DIExtensions
 	{
 		/// <summary>
@@ -68,6 +71,7 @@ namespace Microsoft.Extensions.DependencyInjection
 				{
 					optionBuilder.WithTls(p =>
 					{
+						p.UseTls = true;
 						if(!string.IsNullOrWhiteSpace(certSubject)
 							&& !string.IsNullOrWhiteSpace(certIssuer))
 						{
@@ -112,10 +116,8 @@ namespace Microsoft.Extensions.DependencyInjection
 		///         "DefaultTopic": "local/house",
 		///         "Port": 1883,
 		///         "EnableSSL": true,
-		///         "CertSubject": "CN = test.com",
-		///         "CertIssuer": "CN = Let's Encrypt Authority X3
-		/// O = Let's Encrypt
-		/// C = US",
+		///         "CertSubject": "CN=test.com",
+		///         "CertIssuer": "CN=Let's Encrypt Authority X3, O=Let's Encrypt, C=US",
 		///         "Username": "Hodierne",
 		///         "Password": "Fridayweed"
 		///     }

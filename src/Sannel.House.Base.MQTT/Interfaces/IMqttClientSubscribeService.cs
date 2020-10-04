@@ -13,6 +13,9 @@ using System;
 
 namespace Sannel.House.Base.MQTT.Interfaces
 {
+	/// <summary>
+	/// Represents an interface for subscribing to an mqtt topic
+	/// </summary>
 	public interface IMqttClientSubscribeService
 	{
 		/// <summary>

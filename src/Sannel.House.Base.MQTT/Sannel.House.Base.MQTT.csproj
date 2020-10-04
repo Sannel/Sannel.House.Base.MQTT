@@ -16,11 +16,10 @@
 		<Company>Sannel Software, L.L.C.</Company>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<Copyright>Sannel Software, L.L.C. $([System.DateTime]::Now.ToString('yyyy'))</Copyright>
+		<DocumentationFile>bin/Sannel.House.Base.MQTT.xml</DocumentationFile>
 	</PropertyGroup>
-	
-	<PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.1' 
-				Or '$(TargetFramework)' == 'netcoreapp3.1' 
-				Or '$(TargetFramework)' == 'net5.0'">
+
+	<PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.1' &#xD;&#xA;				Or '$(TargetFramework)' == 'netcoreapp3.1' &#xD;&#xA;				Or '$(TargetFramework)' == 'net5.0'">
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 

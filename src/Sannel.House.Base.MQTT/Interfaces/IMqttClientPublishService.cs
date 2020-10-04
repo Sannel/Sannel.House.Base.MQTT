@@ -13,6 +13,9 @@ using System.Threading.Tasks;
 
 namespace Sannel.House.Base.MQTT.Interfaces
 {
+	/// <summary>
+	/// Represents an interface for publishing to mqtt
+	/// </summary>
 	public interface IMqttClientPublishService
 	{
 		/// <summary>

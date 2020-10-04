@@ -32,24 +32,51 @@ using Microsoft.Extensions.Configuration;
 
 namespace Sannel.House.Base.MQTT
 {
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <seealso cref="Microsoft.Extensions.Hosting.IHostedService" />
+	/// <seealso cref="MQTTnet.Client.Receiving.IMqttApplicationMessageReceivedHandler" />
+	/// <seealso cref="Sannel.House.Base.MQTT.Interfaces.IMqttClientPublishService" />
+	/// <seealso cref="Sannel.House.Base.MQTT.Interfaces.IMqttClientSubscribeService" />
 	public class MqttService : IHostedService,
 								IMqttApplicationMessageReceivedHandler,
 								IMqttClientPublishService,
 								IMqttClientSubscribeService
 	{
+		/// <summary>
+		/// The logger
+		/// </summary>
 		protected readonly ILogger Logger;
+		/// <summary>
+		/// The MQTT client
+		/// </summary>
 		protected readonly IManagedMqttClient MqttClient;
+		/// <summary>
+		/// The options
+		/// </summary>
 		protected readonly IManagedMqttClientOptions options;
+		/// <summary>
+		/// The default topic
+		/// </summary>
 		protected readonly string DefaultTopic;
+		/// <summary>
+		/// The subscriptions
+		/// </summary>
 		protected readonly ConcurrentDictionary<string, Action<string, string>> Subscriptions = new ConcurrentDictionary<string, Action<string, string>>();
+		/// <summary>
+		/// The services
+		/// </summary>
 		protected readonly IServiceProvider services;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="MqttService"/> class.
 		/// </summary>
 		/// <param name="defaultTopic">The default topic.</param>
-		/// <param name="options">The options.</param>
 		/// <param name="logger">The logger.</param>
+		/// <param name="clientOptions">The client options</param>
+		/// <param name="configuration">The configuration</param>
+		/// <param name="services">the service provider</param>
 		/// <exception cref="System.ArgumentNullException">
 		/// logger
 		/// or
@@ -102,6 +129,8 @@ namespace Sannel.House.Base.MQTT
 		/// <param name="client">The client.</param>
 		/// <param name="defaultTopic">The default topic.</param>
 		/// <param name="options">The options.</param>
+		/// <param name="services">The service provider</param>
+		/// <param name="configuration">The configuration</param>
 		/// <param name="logger">The logger.</param>
 		protected MqttService(IManagedMqttClient client,
 			string defaultTopic,
