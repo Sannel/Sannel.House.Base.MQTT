@@ -1,9 +1,31 @@
 <Project>
 	<PropertyGroup>
-		<Major>0</Major>
-		<Minor>1</Minor>
-		<Patch Condition="'$(Build_BuildId)' != ''">$(Build_BuildId)</Patch>
+		<Major Condition="'$(Major)' == ''">0</Major>
+		<Minor Condition="'$(Minor)' == ''">9</Minor>
 		<Patch Condition="'$(Patch)' == ''">0</Patch>
+		<BuildNumber Condition="'$(Build_BuildNumber)' != ''">$([MSBuild]::Modulo($(Build_BuildNumber), 65535))</BuildNumber>
 		<BuildNumber Condition="'$(BuildNumber)' == ''">0</BuildNumber>
 	</PropertyGroup>
+	<PropertyGroup>
+		<AssemblyVersion>$(Major).$(Minor).$(Patch).$(BuildNumber)</AssemblyVersion>
+		<FileVersion>$(Major).$(Minor).$(Patch).$(BuildNumber)</FileVersion>
+		<Version Condition="'$(Configuration)' != 'Release'">$(Major).$(Minor).$(Patch)-beta.$(BuildNumber)</Version>
+		<Version Condition="'$(Configuration)' == 'Release'">$(Major).$(Minor).$(Patch)</Version>
+		<Authors>Adam Holt</Authors>
+		<Company>Sannel Software, L.L.C.</Company>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<Copyright>Sannel Software, L.L.C. $([System.DateTime]::Now.ToString('yyyy'))</Copyright>
+		<PackageProjectUrl>https://github.com/Sannel/Sannel.House.Base.MQTT</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Sannel/Sannel.House.Base.MQTT</RepositoryUrl>
+		<PackageReleaseNotes>
+			<![CDATA[
+]]>
+		</PackageReleaseNotes>
+	</PropertyGroup>
+	<ItemGroup>
+		<None Include="..\..\LICENSE">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+	</ItemGroup>
 </Project>

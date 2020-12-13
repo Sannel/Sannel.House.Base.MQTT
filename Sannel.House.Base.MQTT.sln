@@ -9,10 +9,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		azure-pipelines.yml = azure-pipelines.yml
+		Directory.Build.props = Directory.Build.props
 		readme.md = readme.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sannel.House.Base.MQTT.Tests", "src\Sannel.House.Base.MQTT.Tests\Sannel.House.Base.MQTT.Tests.csproj", "{4766FEFE-28AE-4109-A5BE-FE9C2EADB4A0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sannel.House.Base.MQTT.Tests", "src\Sannel.House.Base.MQTT.Tests\Sannel.House.Base.MQTT.Tests.csproj", "{4766FEFE-28AE-4109-A5BE-FE9C2EADB4A0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
