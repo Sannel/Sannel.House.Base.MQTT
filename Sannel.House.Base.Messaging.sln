@@ -15,6 +15,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sannel.House.Base.MQTT.Tests", "src\Sannel.House.Base.MQTT.Tests\Sannel.House.Base.MQTT.Tests.csproj", "{4766FEFE-28AE-4109-A5BE-FE9C2EADB4A0}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sannel.House.Base.Messaging.Abstractions", "src\Sannel.House.Base.Messaging.Abstractions\Sannel.House.Base.Messaging.Abstractions.csproj", "{5B63E4E2-C766-418D-AD47-BBA2B92576E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sannel.House.Base.Messaging.RabbitMQ", "src\Sannel.House.Base.Messaging.RabbitMQ\Sannel.House.Base.Messaging.RabbitMQ.csproj", "{469B4071-9486-4FA9-A941-B386386B982D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,6 +33,14 @@ Global
 		{4766FEFE-28AE-4109-A5BE-FE9C2EADB4A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4766FEFE-28AE-4109-A5BE-FE9C2EADB4A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4766FEFE-28AE-4109-A5BE-FE9C2EADB4A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B63E4E2-C766-418D-AD47-BBA2B92576E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B63E4E2-C766-418D-AD47-BBA2B92576E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B63E4E2-C766-418D-AD47-BBA2B92576E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B63E4E2-C766-418D-AD47-BBA2B92576E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{469B4071-9486-4FA9-A941-B386386B982D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{469B4071-9486-4FA9-A941-B386386B982D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{469B4071-9486-4FA9-A941-B386386B982D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{469B4071-9486-4FA9-A941-B386386B982D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
