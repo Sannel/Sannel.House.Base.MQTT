@@ -22,21 +22,25 @@ namespace Sannel.House.Base.Messaging
 	public interface IMessageFactory : IDisposable
 	{
 		/// <summary>
-		/// Creates the publisher for the topic.
+		/// Gets a MessagePublisher for the passed topic if its a new topic 
+		/// a new MessagePublisher will be returned if its an existing topic
+		/// the current MessagePublisher for that topic will be returned
 		/// </summary>
 		/// <param name="topic">The topic.</param>
 		/// <returns></returns>
-		IMessagePublisher CreatePublisherForTopic(string topic);
+		IMessagePublisher GetPublisherForTopic(string topic);
 
 		/// <summary>
-		/// Creates the publisher for topic asynchronous.
+		/// Gets a MessagePublisher for the passed topic if its a new topic 
+		/// a new MessagePublisher will be returned if its an existing topic
+		/// the current MessagePublisher for that topic will be returned
 		/// </summary>
 		/// <param name="topic">The topic.</param>
 		/// <returns></returns>
-		Task<IMessagePublisher> CreatePublisherForTopicAsync(string topic);
+		Task<IMessagePublisher> GetPublisherForTopicAsync(string topic);
 
 		/// <summary>
-		/// Subscribes to topic.
+		/// Subscribes to messages from the passed topic string
 		/// </summary>
 		/// <param name="topic">The topic.</param>
 		/// <param name="callback">The callback.</param>
